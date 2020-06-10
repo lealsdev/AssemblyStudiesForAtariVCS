@@ -235,6 +235,24 @@ CheckP0Right:
 EndInputCheck:              ; fallback when no input was performed
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Calculations to update enemy position for the next frame
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+UpdateBomberPosition:
+    lda EnemyYPos
+    clc
+    cmp #0                  ; compare enemy y-position with 0
+    bmi .ResetEnemyPosition ; if it is < 0, then y-position to the top
+    dec EnemyYPos           ; else, decrement enemy y-position for next frame
+    jmp EndPositionUpdate
+
+.ResetEnemyPosition:
+    lda #96
+    sta EnemyYPos
+
+EndPositionUpdate:
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop back to start a brand new frame
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	jmp StartFrame  ; continue to display the next frame
