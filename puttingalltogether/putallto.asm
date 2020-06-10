@@ -103,7 +103,74 @@ GameVisibleLines:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop back to start a brand new frame
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	jmp StartFrame
+	jmp StartFrame  ; continue to display the next frame
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Declare ROM lookup tables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Hero:
+        .byte #%00000000;$40
+        .byte #%00100010;$1C
+        .byte #%01111111;$0A
+        .byte #%00111110;$0E
+        .byte #%00011100;$0E
+        .byte #%00011100;$04
+        .byte #%00001000;$B4
+        .byte #%00001000;$0E
+        .byte #%00001000;$06
+HeroTurn:
+        .byte #%00000000;$40
+        .byte #%00001000;$1C
+        .byte #%00111110;$0A
+        .byte #%00011100;$0E
+        .byte #%00011100;$0E
+        .byte #%00011100;$04
+        .byte #%00001000;$B4
+        .byte #%00001000;$0E
+        .byte #%00001000;$06
+Enemy:
+        .byte #%00000000;$40
+        .byte #%00001000;$40
+        .byte #%00001000;$40
+        .byte #%00101010;$0E
+        .byte #%00111110;$40
+        .byte #%01111111;$40
+        .byte #%00101010;$40
+        .byte #%00001000;$40
+        .byte #%00011100;$40
+        
+ColorHero:
+        .byte #$40;
+        .byte #$1C;
+        .byte #$0A;
+        .byte #$0E;
+        .byte #$0E;
+        .byte #$04;
+        .byte #$B4;
+        .byte #$0E;
+        .byte #$06;
+ColorHeroTurn:
+        .byte #$40;
+        .byte #$1C;
+        .byte #$0A;
+        .byte #$0E;
+        .byte #$0E;
+        .byte #$04;
+        .byte #$B4;
+        .byte #$0E;
+        .byte #$06;
+ColorEnemy:
+        .byte #$40;
+        .byte #$40;
+        .byte #$40;
+        .byte #$0E;
+        .byte #$40;
+        .byte #$40;
+        .byte #$40;
+        .byte #$40;
+        .byte #$40;
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Complete my ROM size with exactly 4KB
