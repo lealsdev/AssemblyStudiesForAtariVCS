@@ -140,7 +140,7 @@ Enemy:
         .byte #%00011100;$40
         
 ColorHero:
-        .byte #$40;
+        .byte #$00;
         .byte #$1C;
         .byte #$0A;
         .byte #$0E;
@@ -150,7 +150,7 @@ ColorHero:
         .byte #$0E;
         .byte #$06;
 ColorHeroTurn:
-        .byte #$40;
+        .byte #$00;
         .byte #$1C;
         .byte #$0A;
         .byte #$0E;
@@ -160,7 +160,7 @@ ColorHeroTurn:
         .byte #$0E;
         .byte #$06;
 ColorEnemy:
-        .byte #$40;
+        .byte #$00;
         .byte #$40;
         .byte #$40;
         .byte #$0E;
