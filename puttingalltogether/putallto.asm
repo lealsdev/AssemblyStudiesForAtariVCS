@@ -22,7 +22,7 @@ ColorHeroPtr    word        ; pointer to player0 color lookup table
 EnemySpritePtr  word        ; pointer to player1 sprite lookup table
 ColorEnemyPtr   word        ; pointer to player1 color lookup table
 HeroAnimationOffset byte    ; player0 sprite frame offset for animation
-
+Random byte                 ; random number generated to set enemy position
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Declare constans
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -52,6 +52,9 @@ Reset:
 
     lda #54
     sta EnemyXPos   ; EnemyXPos = 54
+
+    lda #%11010100
+    sta Random      ; Random = $D4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialize the pointers to the correct lookup table addresses
@@ -246,8 +249,7 @@ UpdateBomberPosition:
     jmp EndPositionUpdate
 
 .ResetEnemyPosition:
-    lda #96
-    sta EnemyYPos
+    jsr GetRandomEnemyPosition  ; call subroutine for random x-position
 
 EndPositionUpdate:
 
@@ -282,6 +284,40 @@ SetObjectXPos subroutine
     asl
     sta HMP0,Y          ; store the fine offset to the correct HMxx
     sta RESP0,Y         ; fix object position in 15-step increment
+    rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Subroutine to generate a Linear-Feedback shift register random number
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Generate a LFSR random number
+;; Divide the random value by 4 to limit the size of the result to match river.
+;; Add 30 to compensate for the left green playfield.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GetRandomEnemyPosition subroutine
+
+    lda Random
+    asl
+    eor Random
+    asl
+    eor Random
+    asl
+    asl
+    eor Random
+    asl
+    rol Random          ; oerfirms a series of shifts and bit operations
+
+    lsr
+    lsr                 ; divide the value by 4 with 2 right shifts
+
+    sta EnemyXPos       ; save it to the variable EnemyXPos
+
+    lda #30
+    adc EnemyXPos       ; adds 30 + EnemyXPos to compensate for left PF
+    sta EnemyXPos       ; and sets the new value to the enemy x-position
+
+    lda #96
+    sta EnemyYPos
+
     rts
 
 
