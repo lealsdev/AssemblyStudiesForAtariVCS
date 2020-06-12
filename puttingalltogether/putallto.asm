@@ -113,9 +113,23 @@ StartFrame:
     sta VSYNC	    ; turn off VSYNC
 
     repeat 37
-        sta WSYNC	;display 37 recommended lines of VBLANK
+        sta WSYNC	; display 37 recommended lines of VBLANK
     repend
     sta VBLANK
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Display the scoreboard lines
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    lda #0          ; clear TIA registers before each new frame
+    sta PF0
+    sta PF1
+    sta PF2
+    sta GRP0
+    sta GRP1
+    sta COLUPF
+    repeat 20
+        sta WSYNC   ; display 20 scanlines where the scoreboard goes
+    repend
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Display the 96 visible scanlines of our main game (2-line kernel)
@@ -139,7 +153,7 @@ GameVisibleLines:
     lda #%00000001
     sta CTRLPF
 
-    ldx #96	        ; x counts the number of remaining scanlines        
+    ldx #84	                ; x counts the number of remaining scanlines        
 .GameLineLoop:
 .AreWeInsideHeroSprite:
     txa                     ; transfer X to A
@@ -253,6 +267,27 @@ UpdateBomberPosition:
 
 EndPositionUpdate:
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Check for object collision
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CheckCollisionP0P1:
+    lda #%10000000          ; CXPPMM bit 7 detects P0 and P1 collision
+    bit CXPPMM              ; check CXPPMM bit 7 with the above pattern
+    bne .CollisionP0P1      ; collision between P0 and P1 happened
+    jmp CheckCollisionP0PF  ; skip to the next check
+.CollisionP0P1:
+    jsr GameOver    ; call Game Over subroutine
+
+CheckCollisionP0PF:
+    lda #%10000000  ; CXP0FB bit 7 detects P0 and PF collision
+    bit CXP0FB      ; check CXP0FB bit 7 with the above pattern
+    bne .CollisionP0PF ; if collision P0 and PF happened
+    jmp EndCollisionCheck
+.CollisionP0PF:
+    jsr GameOver    ; call Game Over subroutine
+
+EndCollisionCheck:  ; fallback
+    sta CXCLR       ; clear all collision flags before next frame
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop back to start a brand new frame
@@ -287,6 +322,15 @@ SetObjectXPos subroutine
     rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Game Over subroutine
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GameOver subroutine
+    lda #$30
+    sta COLUBK
+
+    rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Subroutine to generate a Linear-Feedback shift register random number
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Generate a LFSR random number
@@ -304,7 +348,7 @@ GetRandomEnemyPosition subroutine
     asl
     eor Random
     asl
-    rol Random          ; oerfirms a series of shifts and bit operations
+    rol Random          ; performs a series of shifts and bit operations
 
     lsr
     lsr                 ; divide the value by 4 with 2 right shifts
