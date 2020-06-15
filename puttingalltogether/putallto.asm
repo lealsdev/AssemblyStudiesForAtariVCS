@@ -17,17 +17,20 @@ HeroXPos            byte	; player 0 x-position
 HeroYPos		    byte	; player 0 y-position
 EnemyXPos	        byte	; player 1 x-position
 EnemyYPos	        byte	; player 1 y-position
+Score               byte    ; 2-digit score stored as BCD
+Timer               byte    ; 2-digit timer stored as BCD
+Temp                byte    ; auxiliary varible to store temp score values
+OnesDigitOffset     word    ; lookup table offset for the score ones digit
+TensDigitOffset     word    ; lookup table offset for the score tens digit
 HeroSpritePtr       word    ; pointer to player0 sprite lookup table
 ColorHeroPtr        word    ; pointer to player0 color lookup table
 EnemySpritePtr      word    ; pointer to player1 sprite lookup table
 ColorEnemyPtr       word    ; pointer to player1 color lookup table
 HeroAnimationOffset byte    ; player0 sprite frame offset for animation
 Random              byte    ; random number generated to set enemy position
-Score               byte    ; 2-digit score stored as BCD
-Timer               byte    ; 2-digit timer stored as BCD
-OnesDigitOffset     word    ; lookup table offset for the score ones digit
-TensDigitOffset     word    ; lookup table offset for the score tens digit
-Temp                byte    ; auxiliary varible to store temp score values
+ScoreSprite         byte    ; store the sprite bit pattern for the score
+TimerSprite         byte    ; store the sprite bit pattern for the timer
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Declare constans
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,8 +66,8 @@ Reset:
     sta Random      ; Random = $D4
 
     lda #0
-    sta score       ; score = 0
-    sta timer       ; timer = 0
+    sta Score       ; score = 0
+    sta Timer       ; timer = 0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialize the pointers to the correct lookup table addresses
@@ -132,16 +135,53 @@ StartFrame:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Display the scoreboard lines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    lda #0          ; clear TIA registers before each new frame
+    lda #0              ; clear TIA registers before each new frame
     sta PF0
     sta PF1
     sta PF2
     sta GRP0
     sta GRP1
-    lda #$1C        ; set scoreboard color to white
+    lda #$1C            ; set scoreboard color to white
     sta COLUPF
-    lda #%00000000  ; disable the playfield reflection
-    sta CTRLPF
+    lda #%00000000      ; disable the playfield reflection
+    sta CTRLPF          
+
+    ldx #DIGITS_HEIGHT  ; start X counter with 5 (height of digits)
+
+.ScoreDigitLoop:
+    ; SCORE
+    ldy TensDigitOffset     ; get the tens digit offset for the score
+    lda Digits,Y            ; load the bit pattern from lookup table
+    and #%11110000          ; mask/remove the graphics for the ones digit    
+    sta ScoreSprite         ; save the score tens digit pattern in a variable
+
+    ldy OnesDigitOffset     ; get the ones digit offset for the score
+    lda Digits,Y            ; load the bit pattern from lookup table
+    and #%00001111          ; mask/remove the graphics for the tens digit
+    ora ScoreSprite         ; merge it with the saved tens digit sprite (or)
+    sta ScoreSprite         ; and save it
+
+    sta WSYNC               ; wait for the end of scanline
+    sta PF1                 ; update the playfield to display the Score sprite
+
+    ; TIMER
+    ldy TensDigitOffset+1   ; get the left digit offset for the Timer
+    lda Digits,Y            ; load the digit pattern from the lookup table
+    and #%11110000          ; mask/remove the graphics for the tens digit
+    sta TimerSprite         ; save the score tens digit pattern in a variable
+
+    ldy OnesDigitOffset+1   ; get the ones digit offset for the Timer
+    lda Digits,Y            ; load the digit pattern from lookup table
+    and #%00001111          ; mask/remove the graphics for the tens digit
+    ora TimerSprite         ; merge with the saved tens digit graphics
+    sta TimerSprite         ; and save it
+
+    dex                     ; X--
+    bne .ScoreDigitLoop  ; if dex != 0, then branch to ScoreDigitLooping
+
+    
+
+
     repeat 20
         sta WSYNC   ; display 20 scanlines where the scoreboard goes        
     repend
