@@ -143,11 +143,12 @@ StartFrame:
     sta PF1
     sta PF2
     sta GRP0
-    sta GRP1            ; reset the TIA registers before displaying the score
-    lda #$1C            ; set scoreboard color to white
-    sta COLUPF
-    lda #%00000000      ; disable the playfield reflection
-    sta CTRLPF          
+    sta GRP1            
+    sta CTRLPF
+    sta COLUBK          ; reset the TIA registers before displaying the score
+    
+    lda #$1E            ; set scoreboard color to yellow
+    sta COLUPF              
 
     ldx #DIGITS_HEIGHT  ; start X counter with 5 (height of digits)
 
@@ -193,16 +194,25 @@ StartFrame:
     inc OnesDigitOffset
     inc OnesDigitOffset+1   ; increment all digits for the next line of data
 
-    
     jsr Sleep12Cycles       ;waste some cycles
 
     dex                     ; X--
-    bne .ScoreDigitLoop  ; if dex != 0, then branch to ScoreDigitLooping
+    sta PF1                   
+    bne .ScoreDigitLoop     ; if dex != 0, then branch to ScoreDigitLooping
 
     sta WSYNC
 
+    lda #0
+    sta PF0
+    sta PF1
+    sta PF2
+    sta WSYNC
+    sta WSYNC
+    sta WSYNC
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Display the 96 visible scanlines of our main game (2-line kernel)
+;; Display the remaining visible scanlines of our main game (2-line kernel)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 GameVisibleLines:
     lda #$84
@@ -223,7 +233,7 @@ GameVisibleLines:
     lda #%00000001
     sta CTRLPF
 
-    ldx #84	                ; x counts the number of remaining scanlines        
+    ldx #85	                ; x counts the number of remaining scanlines        
 .GameLineLoop:
 .AreWeInsideHeroSprite:
     txa                     ; transfer X to A
