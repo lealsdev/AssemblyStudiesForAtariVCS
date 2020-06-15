@@ -179,8 +179,27 @@ StartFrame:
     ora TimerSprite         ; merge with the saved tens digit graphics
     sta TimerSprite         ; and save it
 
+    
+    jsr Sleep12Cycles       ; wastes some cycles
+
+    sta PF1                 ; update the playfield for Timer display
+
+    ldy ScoreSprite         ; preload for the next scanline
+    sta WSYNC               ; wait for next scanline
+
+    sty PF1                 ; update playfield for the score display
+    inc TensDigitOffset
+    inc TensDigitOffset+1
+    inc OnesDigitOffset
+    inc OnesDigitOffset+1   ; increment all digits for the next line of data
+
+    
+    jsr Sleep12Cycles       ;waste some cycles
+
     dex                     ; X--
     bne .ScoreDigitLoop  ; if dex != 0, then branch to ScoreDigitLooping
+
+    sta WSYNC
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Display the 96 visible scanlines of our main game (2-line kernel)
@@ -460,6 +479,15 @@ CalculateDigitOffset subroutine
 
     rts
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Subroutine to waste 12 cycles
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; jsr takes 6 cycles
+;; rts takes 6 cycles
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Sleep12Cycles subroutine
+    rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Declare ROM lookup tables
