@@ -54,13 +54,13 @@ Reset:
     sta HeroYPos	; HeroYPos = 10
 
     lda #60
-    sta HeroXPos	; HeroXPos = 60
+    sta HeroXPos	; HeroXPos = 68
 
     lda #83
     sta EnemyYPos   ; EnemyYPos = 83
 
     lda #54
-    sta EnemyXPos   ; EnemyXPos = 54
+    sta EnemyXPos   ; EnemyXPos = 62
 
     lda #%11010100
     sta Random      ; Random = $D4
@@ -98,6 +98,24 @@ Reset:
 StartFrame:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Display VSYNC and VBLANK
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    lda #2
+    sta VSYNC	    ; turn on VBLANK
+    sta VBLANK	    ; turn on VSYNC
+
+    repeat 3
+        sta WSYNC	; display 3 recommended lines of VSYNC
+    repend
+
+    lda #0
+    sta VSYNC	    ; turn off VSYNC
+
+    repeat 33
+        sta WSYNC	; display 33 recommended lines of VBLANK
+    repend
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Calculations and tasks performed in the pre-VBlank
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     lda HeroXPos
@@ -113,23 +131,8 @@ StartFrame:
     sta WSYNC
     sta HMOVE                   ; apply the horizontal offsets previously set
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Display VSYNC and VBLANK
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    lda #2
-    sta VSYNC	    ; turn on VBLANK
-    sta VBLANK	    ; turn on VSYNC
-
-    repeat 3
-        sta WSYNC	; display 3 recommended lines of VSYNC
-    repend
 
     lda #0
-    sta VSYNC	    ; turn off VSYNC
-
-    repeat 37
-        sta WSYNC	; display 37 recommended lines of VBLANK
-    repend
     sta VBLANK
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -140,7 +143,7 @@ StartFrame:
     sta PF1
     sta PF2
     sta GRP0
-    sta GRP1
+    sta GRP1            ; reset the TIA registers before displaying the score
     lda #$1C            ; set scoreboard color to white
     sta COLUPF
     lda #%00000000      ; disable the playfield reflection
@@ -178,13 +181,6 @@ StartFrame:
 
     dex                     ; X--
     bne .ScoreDigitLoop  ; if dex != 0, then branch to ScoreDigitLooping
-
-    
-
-
-    repeat 20
-        sta WSYNC   ; display 20 scanlines where the scoreboard goes        
-    repend
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Display the 96 visible scanlines of our main game (2-line kernel)
